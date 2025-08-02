@@ -58,14 +58,47 @@ function configMCPServer(server: McpServer, sessionId: string) {
       inputSchema: WordSchema.shape,
     },
     async (args: Word) => {
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(args, null, 2),
-          },
-        ],
-      };
+      try {
+        const word = WordSchema.parse(args);
+        const response = await octokit.issues.create({
+          owner,
+          repo,
+          title: word.word,
+          body: JSON.stringify(word, null, 2),
+          labels: ["word"],
+        });
+        console.log("create issue response: ", response);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(args, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          console.error(error.errors);
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(error.errors, null, 2),
+              },
+            ],
+          };
+        } else {
+          console.error(error);
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(error, null, 2),
+              },
+            ],
+          };
+        }
+      }
     }
   );
 
