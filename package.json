@@ -2,8 +2,9 @@
   "name": "githubissuemcp",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "ts-node src/server.ts",
+    "start": "tsx src/mcp.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,11 +12,22 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.1",
     "@octokit/rest": "^22.0.0",
-    "@types/node": "^24.1.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.1",
+    "express": "^4.21.2",
     "fastify": "^5.4.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/cors": "^2.8.19",
+    "@types/node": "^24.1.0",
+    "prettier": "^3.6.2"
   }
 }
