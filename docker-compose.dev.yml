@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  github-issue-mcp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: github-issue-mcp-dev
+    ports:
+      - "3000:3000"
+    environment:
+      # GitHub Configuration
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_OWNER=${GITHUB_OWNER}
+      - GITHUB_REPO=${GITHUB_REPO}
+
+      # Development Configuration
+      - NODE_ENV=development
+      - PORT=3000
+      - HOST=0.0.0.0
+      - CORS_ORIGINS=*
+
+      # Development Logging
+      - LOG_LEVEL=debug
+    env_file:
+      - .env
+    volumes:
+      # Mount source code for hot reloading
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./tsconfig.json:/app/tsconfig.json
+      # Exclude node_modules from mounting
+      - /app/node_modules
+    restart: unless-stopped
+    command: ["npm", "run", "dev"]
+    networks:
+      - mcp-dev-network
+
+networks:
+  mcp-dev-network:
+    driver: bridge

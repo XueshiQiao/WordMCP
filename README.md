@@ -1,6 +1,6 @@
 # GitHub Issue MCP Server
 
-A Model Context Protocol (MCP) server for managing words via GitHub issues. This server provides tools to add, list, and retrieve words stored as GitHub issues.
+A Model Context Protocol (MCP) server for managing words via GitHub issues. This server provides tools to add, list, and retrieve words stored as GitHub issues, one issue for each word.
 
 ## Features
 
@@ -18,7 +18,6 @@ A Model Context Protocol (MCP) server for managing words via GitHub issues. This
 src/
 ├── config.ts              # Configuration management
 ├── errors.ts              # Error handling and custom error classes
-├── github_issues.ts       # GitHub API configuration and validation
 ├── server.ts              # Main HTTP server with MCP integration
 ├── types.ts               # TypeScript type definitions
 ├── word.ts                # Word schema and validation
@@ -30,6 +29,8 @@ src/
 
 ## Installation
 
+### Local Development
+
 1. Clone the repository
 2. Install dependencies:
    ```bash
@@ -37,20 +38,43 @@ src/
    ```
 
 3. Create a `.env` file with your GitHub credentials:
+   ```bash
+   cp env.example .env
+   ```
+   Then edit `.env` with your actual values:
    ```env
    GITHUB_TOKEN=your_github_token
    GITHUB_OWNER=your_github_username
    GITHUB_REPO=your_repository_name
    ```
+4. Run `npm start`
+
+
+### Docker Deployment
+
+1. Clone the repository
+2. Copy the environment example:
+   ```bash
+   cp env.example .env
+   ```
+3. Edit `.env` with your GitHub credentials
+4. Run with Docker Compose:
+   ```bash
+   # Production
+   docker-compose up -d
+
+   # Development (with hot reloading)
+   docker-compose -f docker-compose.dev.yml up -d
+   ```
 
 ## Usage
 
-### Development
+### Local Development
 ```bash
 npm run dev
 ```
 
-### Production
+### Local Production
 ```bash
 npm start
 ```
@@ -58,6 +82,28 @@ npm start
 ### Testing
 ```bash
 npm test
+```
+
+### Docker Commands
+
+```bash
+# Build and start production container
+docker-compose up -d
+
+# Build and start development container (with hot reloading)
+docker-compose -f docker-compose.dev.yml up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+
+# Rebuild and restart
+docker-compose up -d --build
+
+# Production with Nginx reverse proxy
+docker-compose --profile production up -d
 ```
 
 ## API Endpoints
@@ -101,12 +147,28 @@ Retrieves a specific word by ID.
 
 ## Configuration
 
+### Environment Variables
+
 The server can be configured via environment variables:
 
+- `GITHUB_TOKEN` - GitHub personal access token (required)
+- `GITHUB_OWNER` - GitHub username or organization (required)
+- `GITHUB_REPO` - GitHub repository name (required)
 - `PORT` - Server port (default: 3000)
 - `HOST` - Server host (default: localhost)
 - `CORS_ORIGINS` - CORS allowed origins (default: *)
 - `NODE_ENV` - Environment (development/production/test)
+- `LOG_LEVEL` - Logging level (default: info)
+
+### Docker Configuration
+
+The Docker setup includes:
+
+- **Production**: Optimized container with health checks
+- **Development**: Hot reloading with volume mounts
+- **Nginx**: Optional reverse proxy with rate limiting and SSL support
+- **Networking**: Isolated network for security
+- **Logging**: Persistent log volumes
 
 ## Error Handling
 
@@ -145,4 +207,4 @@ All errors are properly logged and returned with appropriate HTTP status codes.
 
 ## License
 
-ISC
+MIT
