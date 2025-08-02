@@ -4,13 +4,22 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "tsx src/mcp_server.ts",
-    "test": "tsx src/word_test.ts"
+    "start": "tsx src/server.ts",
+    "dev": "tsx --watch src/server.ts",
+    "test": "tsx src/word_test.ts",
+    "build": "tsc",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
   },
-  "keywords": [],
+  "keywords": [
+    "mcp",
+    "github",
+    "words",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "MCP server for managing words via GitHub issues",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.1",
     "@octokit/rest": "^22.0.0",
