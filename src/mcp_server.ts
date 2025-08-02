@@ -5,8 +5,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import cors from "cors";
-
-// import { Octokit } from "@octokit/rest";
+import { octokit, owner, repo } from "./github_issus.js";
 
 // {
 //     "word": "evade",
@@ -24,12 +23,103 @@ const wordStructure = {
   word: z.string(),
   pronunciation: z.string(),
   definition: z.string(),
-  context: z.string(),
-  other_definitions: z.array(z.string()),
-  id: z.number(),
+  context: z.string().optional(),
+  other_definitions: z.array(z.string()).optional(),
+  id: z.number().optional(),
 };
 const WordSchema = z.object(wordStructure);
 type Word = z.infer<typeof WordSchema>;
+
+const testWordJSON = {
+  word: "Middle Kingdom",
+  pronunciation: "/ˈmɪdl ˈkɪŋdəm/",
+  definition: "n. 中国（特指供应链扎根的中央王国）",
+  context:
+    "As Mr McGee points out, even if Apple’s final assembly moves to India and elsewhere, the supply chain’s roots remain deeply embedded in the Middle Kingdom.",
+  other_definitions: [
+    "n. 古埃及历史中的中间期王朝",
+    "n. 中世纪欧洲对神圣罗马帝国的别称",
+  ],
+  id: 0,
+};
+
+try {
+  const testWord = WordSchema.parse(testWordJSON);
+  console.log(testWord);
+} catch (error) {
+  console.error(error);
+}
+function configMCPServer(server: McpServer, sessionId: string) {
+  server.registerTool(
+    "add-word",
+    {
+      title: "Add word",
+      description: "Add a word to the list",
+      inputSchema: WordSchema.shape,
+    },
+    async (args: Word) => {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(args, null, 2),
+          },
+        ],
+      };
+    }
+  );
+
+  server.registerTool(
+    "list-words",
+    {
+      title: "List words",
+      description: "List all words",
+    },
+    async () => {
+      try {
+        const response = await octokit.issues.listForRepo({
+          owner,
+          repo,
+        });
+
+        //console.log(response.data);
+
+        const words = response.data
+          .map((issue) => {
+            try {
+              const word = WordSchema.parse(JSON.parse(issue.body || "{}"));
+              return {
+                ...word,
+                id: issue.number,
+              };
+            } catch (error) {
+              console.error("error, issue body: ", issue.body);
+              return null;
+            }
+          })
+          .filter((word) => word !== null);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(words, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        console.error(error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({ error: "Failed to list issues" }, null, 2),
+            },
+          ],
+        };
+      }
+    }
+  );
+}
 
 const app = express();
 app.use(express.json());
@@ -78,6 +168,8 @@ app.post("/mcp", async (req, res) => {
       version: "1.0.0",
     });
 
+    configMCPServer(server, transport.sessionId || "");
+
     // ... set up server resources, tools, and prompts ...
 
     // Connect to the MCP server
@@ -123,86 +215,3 @@ app.delete("/mcp", handleSessionRequest);
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
 });
-
-// const server = new McpServer({
-//   name: "words_mcp",
-//   version: "0.0.1",
-// });
-
-// server.registerTool(
-//   "list",
-//   {
-//     title: "List words",
-//     description: "List all words",
-//     inputSchema: WordSchema.shape,
-//   },
-//   async (args: Word) => {
-//     return {
-//       content: [
-//         {
-//           type: "text",
-//           text: JSON.stringify(args, null, 2),
-//         },
-//       ],
-//     };
-//   }
-// );
-
-// // const transport = new StreamableHTTPServerTransport({
-// //   sessionIdGenerator: () => crypto.randomUUID(),
-// // });
-// const transport = new StdioServerTransport();
-// console.log("Starting server...");
-// await server.connect(transport);
-// console.log("Server started");
-
-// export async function handleAddIssue(
-//   stream: McpStream,
-//   octokit: Octokit,
-//   owner: string,
-//   repo: string,
-//   args: any
-// ) {
-//   try {
-//     const word = args as Word;
-//     // Create a formatted title and body for the GitHub issue
-//     const title = `New Word: ${word.body}`;
-//     const issueBody = `
-// **Pronunciation:** ${word.pronunciation}
-// **Meaning:** ${word.meaning}
-// **Samples:**
-// ${word.samples.map((sample) => `- ${sample}`).join("\n")}
-// `;
-//     const response = await octokit.issues.create({
-//       owner,
-//       repo,
-//       title,
-//       body: issueBody,
-//     });
-//     stream.write(JSON.stringify(response.data));
-//     stream.end();
-//   } catch (error) {
-//     stream.write(JSON.stringify({ error: "Failed to create issue" }));
-//     stream.end();
-//   }
-// }
-
-// export async function handleListIssues(
-//   stream: McpStream,
-//   octokit: Octokit,
-//   owner: string,
-//   repo: string
-// ) {
-//   try {
-//     const response = await octokit.issues.listForRepo({
-//       owner,
-//       repo,
-//     });
-
-//     stream.write(JSON.stringify(response.data));
-//     stream.end();
-//   } catch (error) {
-//     stream.write(JSON.stringify({ error: "Failed to list issues" }));
-//     stream.end();
-//   }
-// }

@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "tsx src/mcp.ts",
+    "start": "tsx src/mcp_server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -17,8 +17,6 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^4.21.2",
-    "fastify": "^5.4.0",
-    "ts-node": "^10.9.2",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
     "zod": "^3.23.8",
