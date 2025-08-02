@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/mcp_server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsx src/word_test.ts"
   },
   "keywords": [],
   "author": "",

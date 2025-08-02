@@ -1,54 +1,14 @@
-import express from "express";
 import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import cors from "cors";
+import express from "express";
+
 import { octokit, owner, repo } from "./github_issus.js";
+import { WordSchema, Word } from "./word.js";
 
-// {
-//     "word": "evade",
-//     "pronunciation": "/ɪˈveɪd/",
-//     "definition": "vt. 回避，躲避（问题）",
-//     "context": "America’s vice-president evaded a question about whether the targets had been “totally obliterated”, as Donald Trump had claimed.",
-//     "other_definitions": [
-//         "vt. 逃避（责任、法律等）",
-//         "vi. 逃脱，躲避"
-//     ],
-//     "id": 0
-// }
-
-const wordStructure = {
-  word: z.string(),
-  pronunciation: z.string(),
-  definition: z.string(),
-  context: z.string().optional(),
-  other_definitions: z.array(z.string()).optional(),
-  id: z.number().optional(),
-};
-const WordSchema = z.object(wordStructure);
-type Word = z.infer<typeof WordSchema>;
-
-const testWordJSON = {
-  word: "Middle Kingdom",
-  pronunciation: "/ˈmɪdl ˈkɪŋdəm/",
-  definition: "n. 中国（特指供应链扎根的中央王国）",
-  context:
-    "As Mr McGee points out, even if Apple’s final assembly moves to India and elsewhere, the supply chain’s roots remain deeply embedded in the Middle Kingdom.",
-  other_definitions: [
-    "n. 古埃及历史中的中间期王朝",
-    "n. 中世纪欧洲对神圣罗马帝国的别称",
-  ],
-  id: 0,
-};
-
-try {
-  const testWord = WordSchema.parse(testWordJSON);
-  console.log(testWord);
-} catch (error) {
-  console.error(error);
-}
 function configMCPServer(server: McpServer, sessionId: string) {
   server.registerTool(
     "add-word",
@@ -115,8 +75,6 @@ function configMCPServer(server: McpServer, sessionId: string) {
           repo,
         });
 
-        //console.log(response.data);
-
         const words = response.data
           .map((issue) => {
             try {
@@ -140,7 +98,7 @@ function configMCPServer(server: McpServer, sessionId: string) {
           ],
         };
       } catch (error) {
-        console.error(error);
+        console.error("error: ", error);
         return {
           content: [
             {
