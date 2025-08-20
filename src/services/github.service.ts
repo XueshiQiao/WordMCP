@@ -23,7 +23,7 @@ export class GitHubService {
         repo: this.repo,
         title: word.word,
         body: JSON.stringify(word, null, 2),
-        labels: ["word"],
+        labels: ["word", "mcp"],
       });
 
       console.log("Created GitHub issue:", response.data.number);
