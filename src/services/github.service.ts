@@ -27,6 +27,7 @@ export class GitHubService {
       });
 
       console.log("Created GitHub issue:", response.data.number);
+      console.log("content: ", JSON.stringify(word, null, 2));
       return response.data;
     } catch (error) {
       console.error("Failed to create GitHub issue:", error);
